@@ -1,0 +1,6 @@
+app_db_postgres: "master.f3f06a9f-52c7-49fd-a44d-b068c033c90c.c.dbaas.selcloud.ru"
+app_db_database: "hexlet"
+app_db_username: "redmine"
+app_db_password: "{{ app_db_password_vault }}"
+datadog_api_key: "{{ datadog_api_key }}"
+datadog_site: "us5.datadoghq.com"

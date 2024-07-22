@@ -1,0 +1,40 @@
+---
+
+- hosts: all
+  tasks:
+    - name: Install Python requests module
+      apt:
+          name: python3-requests
+          state: present
+
+#    - name: Ensure /var/tmp/docker directory exists
+#      file:
+#        path: /var/tmp/docker
+#        state: directory
+#        mode: '0755'
+#
+#    - name: Copy env file to remote server
+#      template:
+#        src: templates/db.env.j2
+#        dest: /var/tmp/docker/db.env
+#        mode: '0644'
+
+
+    - community.docker.docker_container:
+        name: app
+        image: redmine
+        restart_policy: always
+        state: started
+        ports:
+          - 80:3000
+        env:
+          REDMINE_DB_POSTGRES: "{{ app_db_postgres }}"
+          REDMINE_DB_DATABASE: "{{ app_db_database }}"
+          REDMINE_DB_USERNAME: "{{ app_db_username }}"
+          REDMINE_DB_PASSWORD: "{{ app_db_password }}"
+#        env_file: /var/tmp/docker/db.env
+
+    - name: Import the Datadog Agent role from the Datadog collection
+      hosts: webservers
+      import_role:
+          name: datadog.dd.agent

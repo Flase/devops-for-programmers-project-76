@@ -1,0 +1,95 @@
+---
+- name: Deploy to all servers
+  hosts: all
+  become: true
+
+  roles:
+    - role: geerlingguy.pip
+
+
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Ensure user 'ubuntu' exists
+      ansible.builtin.user:
+        name: ubuntu
+        state: present
+        groups: sudo
+        append: yes
+
+    - name: Set authorized key for ubuntu
+      ansible.builtin.authorized_key:
+        user: ubuntu
+        state: present
+        key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDCfaZTsvv5cibe6MpnCIrbP1p5VNCItVT7/CNCCD1rOWnnQaFch4TKbh3Eb77S2CWKc7EggjVW7wbYM04r+JQGZ1jXbDQoCxLErm3nvKD+qYT6oFh+8OanPWLPDNwIkd6pCoZIpnNeSgtRmehRoBJwsv9QW7MQ69SoLlPd3SZM+dHq10N/4h/uZlKyt8fnua+maMd81UxBbcrdpOSn1FReEiiyYZyo8ppOzKGDs+6PumDaiiHTnGCpimHZuGzEMooivOCjHMNkPcebUesvatADgwRxrDJvH4bLnqEqKelXW61L14mAwC9LL6Rjh5z5op2QhOfe03jeBb5MOuaciEpj9ZNeYawMbabesq+IlbMGhmAiZbPkhlo93PXKpDiqa+wtjUBIcP0TTsWJOXLW8l3pzw9HiucYPejmW8PF/pp5WfZqSOxdvHS54v6I9Uis/PnMz7rbpj30HxQoIsCWCNu5uCjWFzoNQUjrfq+sXOEEZ+2aHiK0+XnojcHJjXYQ/ZriPkkhtnp6MwMf4MN0zx+K2SMMcRsQsU+Dsydg5/yUc8csW1zoB8S0SnbnZ5XffjcJOVFNtOds5rieBGB+hD9ONBql/+YxdFZSEtDpCVbK74cOKU80+SKLIuvbSMLQOfT9/mjHPiHEWa/hman374rv/u5et9T2q3C1TYnw+BG2TQ== the-key"
+
+    - name: Ensure sudo group has passwordless sudo
+      ansible.builtin.lineinfile:
+        path: /etc/sudoers
+        state: present
+        regexp: '^%sudo'
+        line: '%sudo ALL=(ALL) NOPASSWD:ALL'
+        validate: 'visudo -cf %s'
+
+    - name: Install dependencies
+      apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: yes
+      loop:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - gnupg-agent
+        - software-properties-common
+
+    - name: Add GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker repository to apt
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable
+        state: present
+        update_cache: yes
+
+    - name: Install Docker
+      apt:
+        name: "{{ item }}"
+        state: latest
+      loop:
+        - docker-ce
+        - docker-ce-cli
+        - containerd.io
+
+    - name: Check Docker is active
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Ensure group "docker" exists
+      ansible.builtin.group:
+        name: docker
+        state: present
+
+    - name: Add ubuntu to docker group
+      user:
+        name: ubuntu
+        groups: docker
+        append: yes
+
+    - name: Install docker-compose
+      get_url:
+        url: https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Linux-x86_64
+        dest: /usr/local/bin/docker-compose
+        mode: 'u+x,g+x'
+
+    - name: Change file ownership, group, and permissions
+      ansible.builtin.file:
+        path: /usr/local/bin/docker-compose
+        owner: ubuntu
+        group: ubuntu
