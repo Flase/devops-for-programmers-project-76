@@ -12,31 +12,31 @@
       apt:
         update_cache: yes
 
-    - name: Ensure user 'ubuntu' exists
-      ansible.builtin.user:
-        name: ubuntu
-        state: present
-        groups: sudo
-        append: yes
+#    - name: Ensure user 'ubuntu' exists
+#      ansible.builtin.user:
+#        name: ubuntu
+#        state: present
+#        groups: sudo
+#        append: yes
 
-    - name: create .ssh dir
-      file:
-          path: "/home/ubuntu/.ssh"
-          state: directory
-          mode: '0755'
+#    - name: create .ssh dir
+#      file:
+#          path: "/home/ubuntu/.ssh"
+#          state: directory
+#          mode: '0755'
 
-    - name: add authorized_keys
-      copy:
-          src: files/authorized_keys
-          dest: "/home/ubuntu/.ssh/authorized_keys"
+#    - name: add authorized_keys
+#      copy:
+#          src: files/authorized_keys
+#          dest: "/home/ubuntu/.ssh/authorized_keys"
 
-    - name: Ensure sudo group has passwordless sudo
-      ansible.builtin.lineinfile:
-        path: /etc/sudoers
-        state: present
-        regexp: '^%sudo'
-        line: '%sudo ALL=(ALL) NOPASSWD:ALL'
-        validate: 'visudo -cf %s'
+#    - name: Ensure sudo group has passwordless sudo
+#      ansible.builtin.lineinfile:
+#        path: /etc/sudoers
+#        state: present
+#        regexp: '^%sudo'
+#        line: '%sudo ALL=(ALL) NOPASSWD:ALL'
+#        validate: 'visudo -cf %s'
 
     - name: Install dependencies
       apt:
@@ -81,11 +81,11 @@
         name: docker
         state: present
 
-    - name: Add ubuntu to docker group
-      user:
-        name: ubuntu
-        groups: docker
-        append: yes
+#    - name: Add ubuntu to docker group
+#      user:
+#        name: ubuntu
+#        groups: docker
+#        append: yes
 
     - name: Install docker-compose
       get_url:
@@ -93,8 +93,8 @@
         dest: /usr/local/bin/docker-compose
         mode: 'u+x,g+x'
 
-    - name: Change file ownership, group, and permissions
-      ansible.builtin.file:
-        path: /usr/local/bin/docker-compose
-        owner: ubuntu
-        group: ubuntu
+#    - name: Change file ownership, group, and permissions
+#      ansible.builtin.file:
+#        path: /usr/local/bin/docker-compose
+#        owner: ubuntu
+#        group: ubuntu
