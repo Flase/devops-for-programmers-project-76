@@ -64,7 +64,7 @@
     - name: Install Docker
       apt:
         name: "{{ item }}"
-        state: latest
+        state: present
       loop:
         - docker-ce
         - docker-ce-cli
